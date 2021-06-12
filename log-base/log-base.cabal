@@ -36,6 +36,7 @@ library
                        Log.Backend.Text,
                        Log.Class,
                        Log.Data,
+                       Log.Effect,
                        Log.Internal.Logger,
                        Log.Logger,
                        Log.Monad
@@ -44,6 +45,7 @@ library
                        aeson-pretty >=0.8.2,
                        bytestring,
                        deepseq,
+                       effectful,
                        exceptions >=0.6,
                        mmorph >=1.0.9 && <1.2,
                        monad-control >=0.3,
@@ -61,8 +63,10 @@ library
 
   default-language:   Haskell2010
   default-extensions: BangPatterns
+                    , DataKinds
                     , FlexibleContexts
                     , FlexibleInstances
+                    , GADTs
                     , GeneralizedNewtypeDeriving
                     , LambdaCase
                     , MultiParamTypeClasses
@@ -72,4 +76,5 @@ library
                     , RecordWildCards
                     , ScopedTypeVariables
                     , TypeFamilies
+                    , TypeOperators
                     , UndecidableInstances

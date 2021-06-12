@@ -2,6 +2,7 @@
 module Log.Class (
     UTCTime
   , MonadLog(..)
+  , getLoggerIO
   , logAttention
   , logInfo
   , logTrace
@@ -15,11 +16,13 @@ import Control.Monad.Trans.Control
 import Data.Aeson
 import Data.Aeson.Types
 import Data.Time
+import Effectful.Monad
 import Prelude
 import qualified Data.Text as T
 
 import Log.Data
 import Log.Logger
+import qualified Log.Effect as E
 
 -- | Represents the family of monads with logging capabilities. Each
 -- 'MonadLog' carries with it some associated state (the logging
@@ -40,6 +43,12 @@ class Monad m => MonadLog m where
   -- functions that work in a different monad, see 'getLoggerIO' as an example.
   getLoggerEnv :: m LoggerEnv
 
+instance E.Log :> es => MonadLog (Eff es) where
+  logMessage   = E.logMessage
+  localData    = E.localData
+  localDomain  = E.localDomain
+  getLoggerEnv = E.getLoggerEnv
+
 -- | Generic, overlapping instance.
 instance {-# OVERLAPPABLE #-} (
     MonadLog m
@@ -56,6 +65,12 @@ controlT :: (MonadTransControl t, Monad (t m), Monad m)
 controlT f = liftWith f >>= restoreT . return
 
 ----------------------------------------
+
+-- | Return an IO action that logs messages using the current 'MonadLog'
+-- context. Useful for interfacing with libraries such as @aws@ or @amazonka@
+-- that accept logging callbacks operating in IO.
+getLoggerIO :: MonadLog m => m (UTCTime -> LogLevel -> T.Text -> Value -> IO ())
+getLoggerIO = logMessageIO <$> getLoggerEnv
 
 -- | Log a message and its associated data using current time as the
 -- event time and the 'LogAttention' log level.
